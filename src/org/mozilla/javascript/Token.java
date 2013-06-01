@@ -228,7 +228,8 @@ public class Token
         DEBUGGER       = 160,
         COMMENT        = 161,
         GENEXPR        = 162,
-        LAST_TOKEN     = 163;
+        ARROW          = 163,
+        LAST_TOKEN     = 164;
 
     /**
      * Returns a name for the token.  If Rhino is compiled with certain
