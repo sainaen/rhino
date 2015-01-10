@@ -1,56 +1,29 @@
 load("testsrc/assert.js");
 
 (function () {
-    // arrow functions have an 'arguments' binding, like any other function
-    // FIXME: ignored, doesn't work now (old implementation)
-    //var arguments = [];
-    //var f = () => arguments;
-    //var args = f();
-    //assertEquals(args.length, 0);
-    //assertEquals(Object.getPrototypeOf(args), Object.prototype);
-    //
-    //args = f(true, false);
-    //assertEquals(args.length, 2);
-    //assertEquals(args[0], true);
-    //assertEquals(args[1], false);
+    // arrow function doesn't have an 'arguments' binding
+
+    var arguments = [1, 2];
+    var f = () => arguments;
+    assertEquals(f(true, false), arguments);
 })();
 
 (function () {
-    // 'arguments' in arrow functions nested in other functions
-    // FIXME: ignored, doesn't work now (old implementation)
-    //var g;
-    //function f() {
-    //    g = () => arguments;
-    //}
-    //f();
-    //var args = g();
-    //assertEquals(args.length, 0);
-    //
-    //args = g(1, 2, 3);
-    //assertEquals(args.length, 3);
-    //assertEquals(args[0], 1);
-    //assertEquals(args[2], 3);
-})();
+    // arrow function captures 'arguments' of an enclosing function
 
-(function () {
-    // the 'arguments' binding in an arrow function is visible in direct eval code
-    // FIXME: ignored, doesn't work now (old implementation)
-    //function f() {
-    //    return s => eval(s);
-    //}
-    //
-    //var g = f();
-    //var args = g("arguments");
-    //assertEquals(typeof args, "object");
-    //assertEquals(args !== g("arguments"), true);
-    //assertEquals(args.length, 1);
-    //assertEquals(args[0], "arguments");
+    function f(a) {
+        return (b) => arguments;
+    }
+    var args = f(10)(20);
+    assertEquals(args[0], 10);
+    assertEquals(args.length, 1);
+    assertEquals(args.callee, f);
 })();
 
 (function () {
     // 'arguments' is banned in a function with a rest param,
     // even nested in an arrow-function parameter default value
-    // FIXME: ignored, doesn't work now (no rest param in Rhino!)
+    // FIXME: ignored, doesn't work now (no rest param in Rhino)
     //var mistakes = [
     //    "(...rest) => arguments",
     //    "(...rest) => (x=arguments) => 0",
