@@ -53,12 +53,21 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Braces after => indicate a block body as opposed to an expression body.
+    // arrow function implicitly returns object only if it's enclosed in parenthesis
+    // see discussion: https://esdiscuss.org/topic/x-foo-bar
 
-    var f = () => {};
-    assertEquals(f(), undefined);
-    var g = () => ({});
+    var f = x => ({foo: x}); // object literal (function f(x) { return {foo: x}; })
+    assertEquals(typeof f(10), "object");
+    assertEquals(f(10).foo, 10);
+
+    var g = () => ({}); // empty object literal (function f(x) { return {}; })
     assertEquals(typeof g(), "object");
+
+    var h = x => {foo: x}; // function body with the label 'foo' (function h(x) { foo: x; }
+    assertEquals(h(10), undefined);
+
+    var n = x => {}; // empty function body (function g(x) {})
+    assertEquals(n(10), undefined);
 })();
 
 (function () {
