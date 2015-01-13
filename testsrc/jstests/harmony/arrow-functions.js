@@ -21,21 +21,6 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // 'arguments' is banned in a function with a rest param,
-    // even nested in an arrow-function parameter default value
-    // FIXME: ignored, doesn't work now (no rest param in Rhino)
-    //var mistakes = [
-    //    "(...rest) => arguments",
-    //    "(...rest) => (x=arguments) => 0",
-    //    "function f(...rest) { return (x=arguments) => 0; }",
-    //    "function f(...rest) { return (x=(y=arguments) => 1) => 0; }",
-    //];
-    //
-    //for (var s of mistakes)
-    //    assertThrows(function () { eval(s); }, SyntaxError);
-})();
-
-(function () {
     // Arrow right-associativity.
 
     var t = a => b => a;
@@ -126,19 +111,6 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arguments with default parameters can shadow const locals.
-    // FIXME: ignored, doesn't work now (no default parameter values in Rhino)
-    //"use strict";
-    //function f() {
-    //    const x = 1;
-    //    return (x = 0) => x;
-    //}
-    //
-    //var g = f();
-    //assertEquals(g(), 0);
-})();
-
-(function () {
     // Arrow functions are not constructors.
 
     var f = a => { this.a = a; };
@@ -167,10 +139,6 @@ load("testsrc/assert.js");
     assertEquals((() => 0).length, 0);
     assertEquals(((a) => 0).length, 1);
     assertEquals(((a, b) => 0).length, 2);
-
-    //FIXME: rest param and default param values are not supported yet
-    //assertEquals(((...arr) => arr).length, 0);
-    //assertEquals(((a=1, b=2) => 0).length, 0);
 })();
 
 (function () {
@@ -189,39 +157,6 @@ load("testsrc/assert.js");
     assertEquals(f(12), 24);
     var g = (a, b) => a + b;
     assertEquals([1, 2, 3, 4, 5].reduce(g), 15);
-})();
-
-(function () {
-    // Parameter default values work in arrow functions
-    // FIXME: ignored, doesn't work now (no default parameter values in Rhino)
-    //var f = (a=0) => a + 1;
-    //assertEquals(f(), 1);
-    //assertEquals(f(50), 51);
-})();
-
-(function () {
-    // Parameter default values work in arrow functions
-    // FIXME: ignored, doesn't work now (no default parameter values in Rhino)
-    //var f = (a=1, b=2, ...rest) => [a, b, rest];
-    //assertEquals(f().toSource(), "[1, 2, []]");
-    //assertEquals(f(0, 0).toSource(), "[0, 0, []]");
-    //assertEquals(f(0, 1, 1, 2, 3, 5).toSource(), "[0, 1, [1, 2, 3, 5]]");
-})();
-
-(function () {
-    // Rest parameters are allowed in arrow functions.
-    // FIXME: ignored, doesn't work now (no rest parameters in Rhino)
-    //var A = (...x) => x;
-    //assertEquals(A().toSource(), "[]");
-    //assertEquals("" + A(3, 4, 5), "3,4,5");
-})();
-
-(function () {
-    // Rest parameters work in arrow functions
-    // FIXME: ignored, doesn't work now (no rest parameters in Rhino)
-    //var f = (a, b, ...rest) => [a, b, rest];
-    //assertEquals(f().toSource(), "[(void 0), (void 0), []]");
-    //assertEquals(f(1, 2, 3, 4).toSource(), "[1, 2, [3, 4]]");
 })();
 
 (function () {
@@ -248,15 +183,6 @@ load("testsrc/assert.js");
 
     var h = (a => a, 13);  // sequence expression
     assertEquals(h, 13);
-})();
-
-(function () {
-    // Funny case that looks kind of like default arguments isn't.
-    // FIXME: ignored, doesn't work now (no default parameter values in Rhino)
-    //var f = (msg="hi", w=window => w.alert(a, b));  // sequence expression
-    //assertEquals(msg, "hi");
-    //assertEquals(typeof w, "function");
-    //assertEquals(f, w);
 })();
 
 (function () {
@@ -287,29 +213,6 @@ load("testsrc/assert.js");
 
     f = a => function () { with (a) return f(); };
     assertEquals(f({f: () => 7})(), 7);
-
-    //FIXME: no default parameter values in Rhino
-    //f = (a = {x: 1, x: 2}) => b => { "use strict"; return a.x; };
-    //assertEquals(f()(0), 2);
-})();
-
-(function () {
-    // code in arrow function default arguments is strict if the body is strict
-    // FIXME: ignored, doesn't work now (no default parameter values in Rhino)
-    //assertThrows(
-    //    () => Function("(a = function (obj) { with (obj) f(); }) => { 'use strict'; }"),
-    //    SyntaxError);
-    //
-    //assertThrows(
-    //    () => Function("(a = obj => { with (obj) f(); }) => { 'use strict'; }"),
-    //    SyntaxError);
-})();
-
-(function () {
-    // "use strict" is not special as the body of an arrow function without braces.
-    // FIXME: ignored, doesn't work now (no default parameter values in Rhino)
-    //var f = (a = obj => { with (obj) return x; }) => "use strict";
-    //assertEquals(f(), "use strict");
 })();
 
 (function () {
@@ -342,11 +245,6 @@ load("testsrc/assert.js");
         "((a)) => expr",
         "a + b => a",
         "'' + a => a",
-        // FIXME: unignore for rest params support
-        //"...x",
-        //"...rest) =>",
-        //"2 + ...rest) =>",
-        //"(...x => expr)",
         // FIXME: parameters destructuring shouldn't work without parenthesis
         //"[x] => x",
         //"([x] => x)",
@@ -363,7 +261,6 @@ load("testsrc/assert.js");
         "a => yield a",
         "a => { yield a; }",
         "a => { { let x; yield a; } }",
-        //"(a = yield 0) => a", FIXME: unignore for default param value support
         "for (;;) a => { break; };",
         "for (;;) a => { continue; };"
     ];
