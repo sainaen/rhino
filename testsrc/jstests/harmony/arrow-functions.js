@@ -1,19 +1,19 @@
 load("testsrc/assert.js");
 
 (function () {
-    // Arrow functions in direct eval code.
+    // arrow functions in direct eval code
 
     function f(s) {
         var a = 2;
         return eval(s);
     }
 
-    var c = f("k => a + k");  // closure should see 'a'
+    var c = f("k => a + k");  // closure should see "a"
     assertEquals(c(3), 5);
 })();
 
 (function () {
-    // Arrow functions have a .length property like ordinary functions.
+    // arrow functions have a .length property like ordinary functions
 
     assertEquals((a => a).hasOwnProperty("length"), true);
 
@@ -24,7 +24,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arrow functions may have empty arguments
+    // arrow functions may have empty arguments
 
     var f = () => "x";
     assertEquals(f.length, 0);
@@ -62,7 +62,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // arrow function's FunctionBody could contain 'var', 'const' or 'let' declarations
+    // arrow function's FunctionBody could contain "var", "const" or "let" declarations
     // section 14.2
 
     var f = (a) => {
@@ -75,14 +75,14 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // it's a SyntaxError to have LineTerminator between ArrowParameters and an arrow token ('=>')
+    // it's a SyntaxError to have LineTerminator between ArrowParameters and an arrow token ("=>")
     // section 14.2
     // FIXME: doesn't work
     //assertThrows(eval("a \n => a"), SyntaxError);
 })();
 
 (function () {
-    // it's a SyntaxError if there's 'let' or 'const' variable (LexicalDeclarations),
+    // it's a SyntaxError if there's "let" or "const" variable (LexicalDeclarations),
     // or class declaration (ClassDeclaration) inside arrow function
     // with the same name as one of the arguments
     // section 14.2.1
@@ -90,13 +90,13 @@ load("testsrc/assert.js");
     //assertThrows(eval("(a => { let a = 10; })"), SyntaxError);
     //assertThrows(eval("(a => { const a = 10; })"), SyntaxError);
 
-    // but not with 'var' (VariableStatement) or functions declaration (HoistableDeclaration)
+    // but not with "var" (VariableStatement) or functions declaration (HoistableDeclaration)
     assertEquals(eval("(a => { var a = 10; return a; })")(20), 10);
     assertEquals(eval("(a => { function a() { return 10 }; return a(); })")(20), 10);
 })();
 
 (function () {
-    // Arrow function doesn't have its own 'arguments' binding
+    // arrow function doesn't have its own "arguments" binding
     // section 14.2.17
 
     var arguments = [1, 2];
@@ -105,7 +105,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // arrow function captures 'arguments' of an enclosing function
+    // arrow function captures "arguments" of an enclosing function
     // section 14.2.17
 
     function f(a) {
@@ -118,7 +118,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arrow right-associativity.
+    // arrow right-associativity
 
     var t = a => b => a;
     assertEquals(t("A")("B"), "A");
@@ -129,7 +129,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arrow right-associativity with =
+    // arrow right-associativity with =
 
     var a, b, c;
     a = b = c => a = b = c;
@@ -140,11 +140,11 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arrow right-associativity with +=
+    // arrow right-associativity with +=
     var s = "";
     s += x => x.name;
     assertEquals(s, "\nx => x.name\n");
-    // FIXME: in original Mozilla's test, '\n'-s aren't expected
+    // FIXME: in original Mozilla's test, "\n"-s aren't expected
     //assertEquals(s, "x => x.name");
 
 })();
@@ -160,7 +160,7 @@ load("testsrc/assert.js");
     var g = () => ({}); // empty object literal (function f(x) { return {}; })
     assertEquals(typeof g(), "object");
 
-    var h = x => {foo: x}; // function body with the label 'foo' (function h(x) { foo: x; }
+    var h = x => {foo: x}; // function body with the label "foo" (function h(x) { foo: x; }
     assertEquals(h(10), undefined);
 
     var n = x => {}; // empty function body (function g(x) {})
@@ -168,7 +168,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Block arrow functions don't return the last expression-statement value automatically.
+    // block arrow functions don't return the last expression-statement value automatically
 
     var f = a => { a + 1; };
     assertEquals(f(0), undefined);
@@ -217,7 +217,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arrow functions are not constructors.
+    // arrow functions are not constructors
 
     var f = a => { this.a = a; };
     assertThrows(() => new f, TypeError);
@@ -225,7 +225,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // || binds tighter than =>.
+    // || binds tighter than =>
 
     var f;
     f = a => a || "nothing";  // f = ((a => a) || "nothing");
@@ -251,7 +251,16 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // The typeof an arrow function is "function".
+    // funny case that looks kind of like default arguments, but isn't
+
+    var f = (msg="hi", w=win => w.foo(1, 2));  // sequence expression
+    assertEquals(msg, "hi");
+    assertEquals(typeof w, "function");
+    assertEquals(f, w);
+})();
+
+(function () {
+    // the typeof an arrow function is "function"
 
     assertEquals(typeof (() => 1), "function");
     assertEquals(typeof (a => { return a + 1; }), "function");
@@ -264,14 +273,14 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // The prototype of an arrow function is Function.prototype.
+    // the prototype of an arrow function is Function.prototype
 
     assertEquals(Object.getPrototypeOf(a => a), Function.prototype);
     assertEquals(Object.getPrototypeOf(() => {}), Function.prototype);
 })();
 
 (function () {
-    // Arrow functions do not have a .prototype property.
+    // arrow functions do not have a .prototype property
 
     assertEquals("prototype" in (a => a), false);
     assertEquals("prototype" in (() => {}), false);
@@ -311,7 +320,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Check that we correctly throw SyntaxErrors for various syntactic near-misses.
+    // check that we correctly throw SyntaxErrors for various syntactic near-misses
 
     var mistakes = [
         "((a)) => expr",
@@ -325,8 +334,10 @@ load("testsrc/assert.js");
         //"{p} => p",
         "1 || a => a",
         "'use strict' => {}",
-        // FIXME: doesn't work now
+        // FIXME: strict mode declared inside the function doesn't affect its arguments
         //"package => {'use strict';}",    // tricky: FutureReservedWord in strict mode code only
+        //"arguments => { 'use strict'; return 0; }",
+        //"eval => { 'use strict'; return 0; }",
         "'use strict'; arguments => 0",  // names banned in strict mode code
         "'use strict'; eval => 0",
         "a => {'use strict'; with (a) return x; }",
@@ -334,20 +345,26 @@ load("testsrc/assert.js");
         "a => { yield a; }",
         "a => { { let x; yield a; } }",
         "for (;;) a => { break; };",
-        "for (;;) a => { continue; };"
+        "for (;;) a => { continue; };",
+        // FIXME: doesn't work (see bug https://bugzilla.mozilla.org/show_bug.cgi?id=1101265)
+        //"1\n) => a",
+        "(1) => 1",
+        "1 => 1",
+        "(a => a",
+        "a) => a"
     ];
 
     for (var i in mistakes) {
         assertThrows(function () { Function(mistakes[i]); }, SyntaxError);
     }
 
-    // Check that the tricky case is not an error in non-strict-mode code.
+    // check that the tricky case is not an error in non-strict-mode code
     var f = package => 0;
     assertEquals(f(1), 0);
 })();
 
 (function () {
-    // 'this' is lexically scoped in arrow functions
+    // "this" is lexically scoped in arrow functions
 
     var obj = {
         f: function (expected) {
@@ -366,7 +383,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // 'this' is lexically scoped in direct eval code in arrow functions
+    // "this" is lexically scoped in direct eval code in arrow functions
 
     var obj = {
         f: function (s) {
@@ -382,7 +399,7 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // 'this' is lexically scoped in arrow functions in direct eval code
+    // "this" is lexically scoped in arrow functions in direct eval code
 
     var obj = {
         f: function (s) {
@@ -397,7 +414,7 @@ load("testsrc/assert.js");
     assertEquals(obj2.g(), obj);
 })();
 
-// 'this' in a toplevel arrow is the global object.
+// "this" in a toplevel arrow is the global object
 var f = () => this;
 (function () {
     assertEquals(f(), this);
@@ -405,8 +422,8 @@ var f = () => this;
 }).call(this);
 
 (function () {
-    // 'this' is lexically scoped, and so cannot be changed
-    // with usual 'call()', 'apply()' or 'bind()' methods
+    // "this" is lexically scoped, and so cannot be changed
+    // with usual "call()", "apply()" or "bind()" methods
 
     var f = function (ctx) {
         return (function () {
@@ -423,7 +440,7 @@ var f = () => this;
 })();
 
 (function () {
-    // Arrow functions can have primitive |this| values.
+    // arrow functions can have primitive "this" values
 
     // FIXME: doesn't work
     //Number.prototype.foo = function () {
@@ -439,7 +456,7 @@ var f = () => this;
 })();
 
 (function () {
-    // Eval expressions in arrow functions use the correct |this| value.
+    // eval expressions in arrow functions use the correct "this" value
 
     function Dog(name) {
         this.name = name;
