@@ -1,7 +1,103 @@
 load("testsrc/assert.js");
 
 (function () {
-    // arrow function doesn't have an 'arguments' binding
+    // Arrow functions in direct eval code.
+
+    function f(s) {
+        var a = 2;
+        return eval(s);
+    }
+
+    var c = f("k => a + k");  // closure should see 'a'
+    assertEquals(c(3), 5);
+})();
+
+(function () {
+    // Arrow functions have a .length property like ordinary functions.
+
+    assertEquals((a => a).hasOwnProperty("length"), true);
+
+    assertEquals((a => a).length, 1);
+    assertEquals((() => 0).length, 0);
+    assertEquals(((a) => 0).length, 1);
+    assertEquals(((a, b) => 0).length, 2);
+})();
+
+(function () {
+    // Arrow functions may have empty arguments
+
+    var f = () => "x";
+    assertEquals(f.length, 0);
+    assertEquals(f(), "x");
+    assertEquals(f(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), "x");
+})();
+
+(function () {
+    // (a) => expr
+
+    var f = (a) => 2 * a;  // parens are allowed
+    assertEquals(f(12), 24);
+    var g = (a, b) => a + b;
+    assertEquals([1, 2, 3, 4, 5].reduce(g), 15);
+})();
+
+(function () {
+    // body of an arrow function could be any AssignmentExpression
+    // section 14.2
+
+    var a = 10, b = 20, c = 0;
+    var f = () => c = a + b;
+    assertEquals(f(), c);
+    assertEquals(c, a + b);
+})();
+
+(function () {
+    // body of an arrow function could be FunctionBody within curly braces
+    // section 14.2
+
+    var a = 10, b = 20, c = 0;
+    var f = () => { return c = a + b };
+    assertEquals(f(), c);
+    assertEquals(c, a + b);
+})();
+
+(function () {
+    // arrow function's FunctionBody could contain 'var', 'const' or 'let' declarations
+    // section 14.2
+
+    var f = (a) => {
+        var b = 2;
+        let c = 3;
+        const d = 4;
+        return a + b + c + d;
+    };
+    assertEquals(f(1), 1 + 2 + 3 + 4);
+})();
+
+(function () {
+    // it's a SyntaxError to have LineTerminator between ArrowParameters and an arrow token ('=>')
+    // section 14.2
+    // FIXME: doesn't work
+    //assertThrows(eval("a \n => a"), SyntaxError);
+})();
+
+(function () {
+    // it's a SyntaxError if there's 'let' or 'const' variable (LexicalDeclarations),
+    // or class declaration (ClassDeclaration) inside arrow function
+    // with the same name as one of the arguments
+    // section 14.2.1
+    // FIXME: doesn't work
+    //assertThrows(eval("(a => { let a = 10; })"), SyntaxError);
+    //assertThrows(eval("(a => { const a = 10; })"), SyntaxError);
+
+    // but not with 'var' (VariableStatement) or functions declaration (HoistableDeclaration)
+    assertEquals(eval("(a => { var a = 10; return a; })")(20), 10);
+    assertEquals(eval("(a => { function a() { return 10 }; return a(); })")(20), 10);
+})();
+
+(function () {
+    // Arrow function doesn't have its own 'arguments' binding
+    // section 14.2.17
 
     var arguments = [1, 2];
     var f = () => arguments;
@@ -10,6 +106,7 @@ load("testsrc/assert.js");
 
 (function () {
     // arrow function captures 'arguments' of an enclosing function
+    // section 14.2.17
 
     function f(a) {
         return (b) => arguments;
@@ -128,47 +225,6 @@ load("testsrc/assert.js");
 })();
 
 (function () {
-    // Arrow functions in direct eval code.
-
-    function f(s) {
-        var a = 2;
-        return eval(s);
-    }
-
-    var c = f("k => a + k");  // closure should see 'a'
-    assertEquals(c(3), 5);
-})();
-
-(function () {
-    // Arrow functions have a .length property like ordinary functions.
-
-    assertEquals((a => a).hasOwnProperty("length"), true);
-
-    assertEquals((a => a).length, 1);
-    assertEquals((() => 0).length, 0);
-    assertEquals(((a) => 0).length, 1);
-    assertEquals(((a, b) => 0).length, 2);
-})();
-
-(function () {
-    // Arrow functions may have empty arguments
-
-    var f = () => "x";
-    assertEquals(f.length, 0);
-    assertEquals(f(), "x");
-    assertEquals(f(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), "x");
-})();
-
-(function () {
-    // (a) => expr
-
-    var f = (a) => 2 * a;  // parens are allowed
-    assertEquals(f(12), 24);
-    var g = (a, b) => a + b;
-    assertEquals([1, 2, 3, 4, 5].reduce(g), 15);
-})();
-
-(function () {
     // || binds tighter than =>.
 
     var f;
@@ -192,6 +248,13 @@ load("testsrc/assert.js");
 
     var h = (a => a, 13);  // sequence expression
     assertEquals(h, 13);
+})();
+
+(function () {
+    // The typeof an arrow function is "function".
+
+    assertEquals(typeof (() => 1), "function");
+    assertEquals(typeof (a => { return a + 1; }), "function");
 })();
 
 (function () {
@@ -342,9 +405,27 @@ var f = () => this;
 }).call(this);
 
 (function () {
+    // 'this' is lexically scoped, and so cannot be changed
+    // with usual 'call()', 'apply()' or 'bind()' methods
+
+    var f = function (ctx) {
+        return (function () {
+            return x => this.id + x;
+        }).call(ctx);
+    };
+    var o1 = {id: 1};
+    var o2 = {id: 2};
+    assertEquals(f(o1)(1), o1.id + 1);
+    assertEquals(f(o1).call(o2, 1), o1.id + 1);
+    assertEquals(f(o1).apply(o2, [1]), o1.id + 1);
+    assertEquals(f(o1).bind(o2)(1), o1.id + 1);
+    assertEquals(f(o1).bind(o2, 1)(), o1.id + 1);
+})();
+
+(function () {
     // Arrow functions can have primitive |this| values.
 
-    // FIXME: doesn't work now
+    // FIXME: doesn't work
     //Number.prototype.foo = function () {
     //    "use strict";
     //    return () => this;
@@ -369,13 +450,6 @@ var f = () => this;
     var d = new Dog("Max");
     assertEquals(d.getName(), d.name);
     assertEquals(d.getNameHard(), d.name);
-})();
-
-(function () {
-    // The typeof an arrow function is "function".
-
-    assertEquals(typeof (() => 1), "function");
-    assertEquals(typeof (a => { return a + 1; }), "function");
 })();
 
 "success";
