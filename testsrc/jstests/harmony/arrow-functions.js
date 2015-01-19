@@ -65,7 +65,7 @@ load("testsrc/assert.js");
     // arrow function's FunctionBody could contain "var", "const" or "let" declarations
     // section 14.2
 
-    var f = (a) => {
+    var f = a => {
         var b = 2;
         let c = 3;
         const d = 4;
@@ -77,8 +77,8 @@ load("testsrc/assert.js");
 (function () {
     // it's a SyntaxError to have LineTerminator between ArrowParameters and an arrow token ("=>")
     // section 14.2
-    // FIXME: doesn't work
-    //assertThrows(eval("a \n => a"), SyntaxError);
+
+    assertThrows("a \n => a", SyntaxError);
 })();
 
 (function () {

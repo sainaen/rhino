@@ -2177,6 +2177,9 @@ public class Parser
                 pn.setJsDocNode(getAndResetJsDoc());
             }
         } else if (tt == Token.ARROW) {
+            if ((currentFlaggedToken & TI_AFTER_EOL) != 0) {
+                reportError("msg.arrowfn.eol.before.arrow");
+            }
             consumeToken();
             pn = arrowFunction(pn);
         }
