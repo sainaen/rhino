@@ -469,4 +469,14 @@ var f = () => this;
     assertEquals(d.getNameHard(), d.name);
 })();
 
+(function () {
+    // When ArrowParameters is recognized as CoverParenthesizedExpressionAndArrowParameterList,
+    // then it should be parsed as `( StrictFormalParameters )`, which means
+    // that arrow parameters must not have duplicated bindings even in non-strict mode
+    // see 14.2
+
+    // FIXME
+    //assertThrows("(a, a) => a", SyntaxError);
+})();
+
 "success";
