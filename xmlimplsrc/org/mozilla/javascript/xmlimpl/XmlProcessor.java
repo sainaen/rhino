@@ -53,7 +53,7 @@ class XmlProcessor implements Serializable {
         private static final long serialVersionUID = 6918417235413084055L;
 
         private void throwError(SAXParseException e) {
-            throw ScriptRuntime.constructError("TypeError", e.getMessage(),
+            throw ScriptRuntime.constructError(TopLevel.NativeErrors.TypeError, e.getMessage(),
                 e.getLineNumber() - 1);
         }
 
@@ -251,7 +251,7 @@ class XmlProcessor implements Serializable {
             }
             NodeList rv = document.getDocumentElement().getChildNodes();
             if (rv.getLength() > 1) {
-                throw ScriptRuntime.constructError("SyntaxError", "XML objects may contain at most one node.");
+                throw ScriptRuntime.constructError(TopLevel.NativeErrors.SyntaxError, "XML objects may contain at most one node.");
             } else if (rv.getLength() == 0) {
                 Node node = document.createTextNode("");
                 return node;

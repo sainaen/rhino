@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import org.mozilla.javascript.TopLevel.NativeErrors;
 import org.mozilla.javascript.ast.FunctionNode;
 import org.mozilla.javascript.v8dtoa.DoubleConversion;
 import org.mozilla.javascript.v8dtoa.FastDtoa;
@@ -1127,7 +1128,7 @@ public class ScriptRuntime {
     }
 
     static Scriptable newNativeError(Context cx, Scriptable scope,
-                                     TopLevel.NativeErrors type, Object[] args)
+                                     NativeErrors type, Object[] args)
     {
         scope = ScriptableObject.getTopLevelScope(scope);
         Function ctor = TopLevel.getNativeErrorCtor(cx, scope, type);
@@ -2052,7 +2053,7 @@ public class ScriptRuntime {
         } else {
             // See ES5 8.7.2
             String msg = "Assignment to undefined \"" + id + "\" in strict mode";
-            throw constructError("ReferenceError", msg);
+            throw constructError(NativeErrors.ReferenceError, msg);
         }
     }
 
@@ -2485,7 +2486,7 @@ public class ScriptRuntime {
         // No runtime support for now
         String msg = getMessage1("msg.no.ref.from.function",
                                  toString(function));
-        throw constructError("ReferenceError", msg);
+        throw constructError(NativeErrors.ReferenceError, msg);
     }
 
     /**
@@ -3429,33 +3430,33 @@ public class ScriptRuntime {
             }
 
             RhinoException re;
-            TopLevel.NativeErrors type;
+            NativeErrors type;
             String errorMsg;
             Throwable javaException = null;
 
             if (t instanceof EcmaError) {
                 EcmaError ee = (EcmaError)t;
                 re = ee;
-                type = TopLevel.NativeErrors.valueOf(ee.getName());
+                type = NativeErrors.valueOf(ee.getName());
                 errorMsg = ee.getErrorMessage();
             } else if (t instanceof WrappedException) {
                 WrappedException we = (WrappedException)t;
                 re = we;
                 javaException = we.getWrappedException();
-                type = TopLevel.NativeErrors.JavaException;
+                type = NativeErrors.JavaException;
                 errorMsg = javaException.getClass().getName()
                            +": "+javaException.getMessage();
             } else if (t instanceof EvaluatorException) {
                 // Pure evaluator exception, nor WrappedException instance
                 EvaluatorException ee = (EvaluatorException)t;
                 re = ee;
-                type = TopLevel.NativeErrors.InternalError;
+                type = NativeErrors.InternalError;
                 errorMsg = ee.getMessage();
             } else if (cx.hasFeature(Context.FEATURE_ENHANCED_JAVA_ACCESS)) {
                 // With FEATURE_ENHANCED_JAVA_ACCESS, scripts can catch
                 // all exception types
                 re = new WrappedException(t);
-                type = TopLevel.NativeErrors.JavaException;
+                type = NativeErrors.JavaException;
                 errorMsg = t.toString();
             } else {
                 // Script can catch only instances of JavaScriptException,
@@ -3920,14 +3921,14 @@ public class ScriptRuntime {
         }
     }
 
-    public static EcmaError constructError(String error, String message)
+    public static EcmaError constructError(NativeErrors error, String message)
     {
         int[] linep = new int[1];
         String filename = Context.getSourcePositionFromStack(linep);
         return constructError(error, message, filename, linep[0], null, 0);
     }
 
-    public static EcmaError constructError(String error,
+    public static EcmaError constructError(NativeErrors error,
                                            String message,
                                            int lineNumberDelta)
     {
@@ -3939,7 +3940,7 @@ public class ScriptRuntime {
         return constructError(error, message, filename, linep[0], null, 0);
     }
 
-    public static EcmaError constructError(String error,
+    public static EcmaError constructError(NativeErrors error,
                                            String message,
                                            String sourceName,
                                            int lineNumber,
@@ -3952,7 +3953,7 @@ public class ScriptRuntime {
 
     public static EcmaError typeError(String message)
     {
-        return constructError("TypeError", message);
+        return constructError(NativeErrors.TypeError, message);
     }
 
     public static EcmaError typeError0(String messageId)
@@ -4009,7 +4010,7 @@ public class ScriptRuntime {
     {
         // XXX: use object to improve the error message
         String msg = getMessage1("msg.is.not.defined", property);
-        throw constructError("ReferenceError", msg);
+        throw constructError(NativeErrors.ReferenceError, msg);
     }
 
     public static RuntimeException notFunctionError(Object value)

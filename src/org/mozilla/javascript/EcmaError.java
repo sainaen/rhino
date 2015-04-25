@@ -32,12 +32,12 @@ public class EcmaError extends RhinoException
      * @param lineSource the source of the line containing the error (may be
      *                   null if unknown)
      */
-    EcmaError(String errorName, String errorMessage,
+    EcmaError(TopLevel.NativeErrors errorName, String errorMessage,
               String sourceName, int lineNumber,
               String lineSource, int columnNumber)
     {
         recordErrorOrigin(sourceName, lineNumber, lineSource, columnNumber);
-        this.errorName = errorName;
+        this.errorName = errorName.name();
         this.errorMessage = errorMessage;
     }
 
@@ -49,7 +49,7 @@ public class EcmaError extends RhinoException
     public EcmaError(Scriptable nativeError, String sourceName,
                      int lineNumber, int columnNumber, String lineSource)
     {
-        this("InternalError", ScriptRuntime.toString(nativeError),
+        this(TopLevel.NativeErrors.InternalError, ScriptRuntime.toString(nativeError),
              sourceName, lineNumber, lineSource, columnNumber);
     }
 

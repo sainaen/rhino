@@ -6,13 +6,7 @@
 
 package org.mozilla.javascript.typedarrays;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ExternalArrayData;
-import org.mozilla.javascript.IdFunctionObject;
-import org.mozilla.javascript.NativeArray;
-import org.mozilla.javascript.ScriptRuntime;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.*;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -20,6 +14,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.RandomAccess;
+
+import static org.mozilla.javascript.TopLevel.NativeErrors.Error;
+import static org.mozilla.javascript.TopLevel.NativeErrors.RangeError;
 
 /**
  * This class is the abstract parent for all of the various typed arrays. Each one
@@ -139,16 +136,16 @@ public abstract class NativeTypedArrayView<T>
             }
 
             if ((byteOff < 0) || (byteOff > na.buffer.length)) {
-                throw ScriptRuntime.constructError("RangeError", "offset out of range");
+                throw ScriptRuntime.constructError(RangeError, "offset out of range");
             }
             if ((byteLen < 0) || ((byteOff + byteLen) > na.buffer.length)) {
-                throw ScriptRuntime.constructError("RangeError", "length out of range");
+                throw ScriptRuntime.constructError(RangeError, "length out of range");
             }
             if ((byteOff % getBytesPerElement()) != 0) {
-                throw ScriptRuntime.constructError("RangeError", "offset must be a multiple of the byte size");
+                throw ScriptRuntime.constructError(RangeError, "offset must be a multiple of the byte size");
             }
             if ((byteLen % getBytesPerElement()) != 0) {
-                throw ScriptRuntime.constructError("RangeError", "offset and buffer must be a multiple of the byte size");
+                throw ScriptRuntime.constructError(RangeError, "offset and buffer must be a multiple of the byte size");
             }
 
             return construct(na, byteOff, byteLen / getBytesPerElement());
@@ -166,18 +163,18 @@ public abstract class NativeTypedArrayView<T>
             return v;
 
         } else {
-            throw ScriptRuntime.constructError("Error", "invalid argument");
+            throw ScriptRuntime.constructError(Error, "invalid argument");
         }
     }
 
     private void setRange(NativeTypedArrayView v, int off)
     {
         if (off >= length) {
-            throw ScriptRuntime.constructError("RangeError", "offset out of range");
+            throw ScriptRuntime.constructError(RangeError, "offset out of range");
         }
 
         if (v.length > (length - off)) {
-            throw ScriptRuntime.constructError("RangeError", "source array too long");
+            throw ScriptRuntime.constructError(RangeError, "source array too long");
         }
 
         if (v.arrayBuffer == arrayBuffer) {
@@ -199,10 +196,10 @@ public abstract class NativeTypedArrayView<T>
     private void setRange(NativeArray a, int off)
     {
         if (off > length) {
-            throw ScriptRuntime.constructError("RangeError", "offset out of range");
+            throw ScriptRuntime.constructError(RangeError, "offset out of range");
         }
         if ((off + a.size()) > length) {
-            throw ScriptRuntime.constructError("RangeError", "offset + length out of range");
+            throw ScriptRuntime.constructError(RangeError, "offset + length out of range");
         }
 
         int pos = off;
@@ -246,7 +243,7 @@ public abstract class NativeTypedArrayView<T>
             if (args.length > 0) {
                 return realThis(thisObj, f).js_get(ScriptRuntime.toInt32(args[0]));
             } else {
-                throw ScriptRuntime.constructError("Error", "invalid arguments");
+                throw ScriptRuntime.constructError(Error, "invalid arguments");
             }
 
         case Id_set:
@@ -270,7 +267,7 @@ public abstract class NativeTypedArrayView<T>
                     return self.js_set(ScriptRuntime.toInt32(args[0]), args[1]);
                 }
             }
-            throw ScriptRuntime.constructError("Error", "invalid arguments");
+            throw ScriptRuntime.constructError(Error, "invalid arguments");
 
         case Id_subarray:
             if (args.length > 0) {
@@ -279,7 +276,7 @@ public abstract class NativeTypedArrayView<T>
                 int end = isArg(args, 1) ? ScriptRuntime.toInt32(args[1]) : self.length;
                 return self.js_subarray(cx, scope, start, end);
             } else {
-                throw ScriptRuntime.constructError("Error", "invalid arguments");
+                throw ScriptRuntime.constructError(Error, "invalid arguments");
             }
         }
         throw new IllegalArgumentException(String.valueOf(id));

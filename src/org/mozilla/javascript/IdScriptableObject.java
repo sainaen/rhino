@@ -560,7 +560,7 @@ public abstract class IdScriptableObject extends ScriptableObject
      * @param attr the new attribute bitset
      */
     protected void setInstanceIdAttributes(int id, int attr) {
-        throw ScriptRuntime.constructError("InternalError",
+        throw ScriptRuntime.constructError(TopLevel.NativeErrors.InternalError,
                 "Changing attributes not supported for " + getClassName()
                 + " " + getInstanceIdName(id) + " property");
     }

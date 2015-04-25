@@ -46,12 +46,11 @@ class DefaultErrorReporter implements ErrorReporter
             // Assume error message strings that start with "TypeError: "
             // should become TypeError exceptions. A bit of a hack, but we
             // don't want to change the ErrorReporter interface.
-            String error = "SyntaxError";
-            final String TYPE_ERROR_NAME = "TypeError";
+            TopLevel.NativeErrors error = TopLevel.NativeErrors.SyntaxError;
             final String DELIMETER = ": ";
-            final String prefix = TYPE_ERROR_NAME + DELIMETER;
+            final String prefix = TopLevel.NativeErrors.TypeError.name() + DELIMETER;
             if (message.startsWith(prefix)) {
-                error = TYPE_ERROR_NAME;
+                error = TopLevel.NativeErrors.TypeError;
                 message = message.substring(prefix.length());
             }
             throw ScriptRuntime.constructError(error, message, sourceURI,

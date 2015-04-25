@@ -1491,7 +1491,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
     {
         int byteIndex = (c / 8);
         if (c >= cs.length) {
-            throw ScriptRuntime.constructError("SyntaxError",
+            throw ScriptRuntime.constructError(TopLevel.NativeErrors.SyntaxError,
                     "invalid range in character class");
         }
         cs.bits[byteIndex] |= 1 << (c & 0x7);
@@ -1508,7 +1508,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
         int byteIndex2 = (c2 / 8);
 
         if ((c2 >= cs.length) || (c1 > c2)) {
-            throw ScriptRuntime.constructError("SyntaxError",
+            throw ScriptRuntime.constructError(TopLevel.NativeErrors.SyntaxError,
                     "invalid range in character class");
         }
 
@@ -2562,7 +2562,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
     private static void reportError(String messageId, String arg)
     {
         String msg = ScriptRuntime.getMessage1(messageId, arg);
-        throw ScriptRuntime.constructError("SyntaxError", msg);
+        throw ScriptRuntime.constructError(TopLevel.NativeErrors.SyntaxError, msg);
     }
 
 // #string_id_map#

@@ -609,7 +609,7 @@ public class NativeArray extends IdScriptableObject implements List
                 long len = ScriptRuntime.toUint32(arg0);
                 if (len != ((Number)arg0).doubleValue()) {
                     String msg = ScriptRuntime.getMessage0("msg.arraylength.bad");
-                    throw ScriptRuntime.constructError("RangeError", msg);
+                    throw ScriptRuntime.constructError(TopLevel.NativeErrors.RangeError, msg);
                 }
                 return new NativeArray(len);
             }
@@ -656,7 +656,7 @@ public class NativeArray extends IdScriptableObject implements List
         long longVal = ScriptRuntime.toUint32(d);
         if (longVal != d) {
             String msg = ScriptRuntime.getMessage0("msg.arraylength.bad");
-            throw ScriptRuntime.constructError("RangeError", msg);
+            throw ScriptRuntime.constructError(TopLevel.NativeErrors.RangeError, msg);
         }
 
         if (denseOnly) {

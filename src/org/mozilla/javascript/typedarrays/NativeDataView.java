@@ -6,11 +6,10 @@
 
 package org.mozilla.javascript.typedarrays;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.IdFunctionObject;
-import org.mozilla.javascript.ScriptRuntime;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.*;
+
+import static org.mozilla.javascript.TopLevel.NativeErrors.RangeError;
+import static org.mozilla.javascript.TopLevel.NativeErrors.TypeError;
 
 /**
  * This class represents the JavaScript "DataView" interface, which allows direct manipulations of the
@@ -50,27 +49,27 @@ public class NativeDataView
     private void rangeCheck(int offset, int len)
     {
         if ((offset < 0) || ((offset + len) > byteLength)) {
-            throw ScriptRuntime.constructError("RangeError", "offset out of range");
+            throw ScriptRuntime.constructError(RangeError, "offset out of range");
         }
     }
 
     private void checkOffset(Object[] args, int pos)
     {
         if (args.length <= pos) {
-            throw ScriptRuntime.constructError("TypeError", "missing required offset parameter");
+            throw ScriptRuntime.constructError(TypeError, "missing required offset parameter");
         }
         if (Undefined.instance.equals(args[pos])) {
-            throw ScriptRuntime.constructError("RangeError", "invalid offset");
+            throw ScriptRuntime.constructError(RangeError, "invalid offset");
         }
     }
 
     private void checkValue(Object[] args, int pos)
     {
         if (args.length <= pos) {
-            throw ScriptRuntime.constructError("TypeError", "missing required value parameter");
+            throw ScriptRuntime.constructError(TypeError, "missing required value parameter");
         }
         if (Undefined.instance.equals(args[pos])) {
-            throw ScriptRuntime.constructError("RangeError", "invalid value parameter");
+            throw ScriptRuntime.constructError(RangeError, "invalid value parameter");
         }
     }
 
@@ -84,10 +83,10 @@ public class NativeDataView
     private NativeDataView js_constructor(NativeArrayBuffer ab, int offset, int length)
     {
         if (length < 0) {
-            throw ScriptRuntime.constructError("RangeError", "length out of range");
+            throw ScriptRuntime.constructError(RangeError, "length out of range");
         }
         if ((offset < 0) || ((offset + length) > ab.getLength())) {
-            throw ScriptRuntime.constructError("RangeError", "offset out of range");
+            throw ScriptRuntime.constructError(RangeError, "offset out of range");
         }
         return new NativeDataView(ab, offset, length);
     }
@@ -217,7 +216,7 @@ public class NativeDataView
                 int len = isArg(args, 2) ? ScriptRuntime.toInt32(args[2]) : ab.getLength() - off;
                 return js_constructor(ab, off, len);
             } else {
-                throw ScriptRuntime.constructError("TypeError", "Missing parameters");
+                throw ScriptRuntime.constructError(TypeError, "Missing parameters");
             }
         case Id_getInt8:
             return realThis(thisObj, f).js_getInt(1, true, args);

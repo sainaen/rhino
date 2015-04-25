@@ -501,12 +501,12 @@ public class NativeGlobal implements Serializable, IdFunctionCall
     }
 
     /**
-     * @deprecated Use {@link ScriptRuntime#constructError(String,String)}
+     * @deprecated Use {@link ScriptRuntime#constructError(TopLevel.NativeErrors,String)}
      * instead.
      */
     @Deprecated
     public static EcmaError constructError(Context cx,
-                                           String error,
+                                           TopLevel.NativeErrors error,
                                            String message,
                                            Scriptable scope)
     {
@@ -515,12 +515,12 @@ public class NativeGlobal implements Serializable, IdFunctionCall
 
     /**
      * @deprecated Use
-     * {@link ScriptRuntime#constructError(String,String,String,int,String,int)}
+     * {@link ScriptRuntime#constructError(TopLevel.NativeErrors, String, String, int, String, int)}
      * instead.
      */
     @Deprecated
     public static EcmaError constructError(Context cx,
-                                           String error,
+                                           TopLevel.NativeErrors error,
                                            String message,
                                            Scriptable scope,
                                            String sourceName,
@@ -722,7 +722,7 @@ public class NativeGlobal implements Serializable, IdFunctionCall
     }
 
     private static EcmaError uriError() {
-        return ScriptRuntime.constructError("URIError",
+        return ScriptRuntime.constructError(TopLevel.NativeErrors.URIError,
                 ScriptRuntime.getMessage0("msg.bad.uri"));
     }
 

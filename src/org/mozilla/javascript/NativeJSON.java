@@ -109,7 +109,7 @@ public final class NativeJSON extends IdScriptableObject
       try {
         return new JsonParser(cx, scope).parseValue(jtext);
       } catch (JsonParser.ParseException ex) {
-        throw ScriptRuntime.constructError("SyntaxError", ex.getMessage());
+        throw ScriptRuntime.constructError(TopLevel.NativeErrors.SyntaxError, ex.getMessage());
       }
     }
 
