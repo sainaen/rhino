@@ -112,6 +112,11 @@ public class Context
     public static final int VERSION_1_8 =      180;
 
     /**
+     * ECMAScript 2015
+     */
+    public static final int VERSION_ES2015 =   190;
+
+    /**
      * Controls behaviour of <tt>Date.prototype.getYear()</tt>.
      * If <tt>hasFeature(FEATURE_NON_ECMA_GET_YEAR)</tt> returns true,
      * Date.prototype.getYear subtructs 1900 only if 1900 <= date < 2000.
@@ -651,6 +656,7 @@ public class Context
             case VERSION_1_6:
             case VERSION_1_7:
             case VERSION_1_8:
+            case VERSION_ES2015:
                 return true;
         }
         return false;

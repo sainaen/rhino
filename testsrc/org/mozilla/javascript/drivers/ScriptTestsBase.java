@@ -32,7 +32,7 @@ public abstract class ScriptTestsBase {
         RhinoTest anno = this.getClass().getAnnotation(RhinoTest.class);
         assertNotNull(anno);
 
-        int jsVersion = Context.VERSION_1_8;
+        int jsVersion = Context.VERSION_ES2015;
         LanguageVersion jsVersionAnnotation = this.getClass().getAnnotation(LanguageVersion.class);
         if (jsVersionAnnotation != null) {
             jsVersion = jsVersionAnnotation.value();

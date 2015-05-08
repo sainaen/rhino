@@ -35,7 +35,7 @@ public class SunSpiderBenchmark
 
         try {
             Context cx = Context.enter();
-            cx.setLanguageVersion(Context.VERSION_1_8);
+            cx.setLanguageVersion(Context.VERSION_ES2015);
             cx.setOptimizationLevel(optLevel);
             Global root = new Global(cx);
             root.put("RUN_NAME", root, "SunSpider-" + optLevel);
