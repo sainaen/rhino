@@ -6,6 +6,8 @@
 
 package org.mozilla.javascript;
 
+import org.mozilla.javascript.regexp.NativeRegExp;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -1612,7 +1614,13 @@ public class NativeArray extends IdScriptableObject implements List
         Object callbackArg = args.length > 0 ? args[0] : Undefined.instance;
         if (callbackArg == null || !(callbackArg instanceof Function)) {
             throw ScriptRuntime.notFunctionError(callbackArg);
-        } else if ((id == Id_find || id == Id_findIndex) && !(callbackArg instanceof NativeFunction)) {
+        }
+        if (cx.getLanguageVersion() >= Context.VERSION_ES6 && (callbackArg instanceof NativeRegExp)) {
+            // Previously, it was allowed to pass RegExp instance as a callback (it implements Function)
+            // But according to ES2015 21.2.6 Properties of RegExp Instances:
+            // > RegExp instances are ordinary objects that inherit properties from the RegExp prototype object.
+            // > RegExp instances have internal slots [[RegExpMatcher]], [[OriginalSource]], and [[OriginalFlags]].
+            // so, no [[Call]] for RegExp-s
             throw ScriptRuntime.notFunctionError(callbackArg);
         }
 
@@ -1634,7 +1642,7 @@ public class NativeArray extends IdScriptableObject implements List
         for (long i=0; i < length; i++) {
             Object[] innerArgs = new Object[3];
             Object elem = getRawElem(thisObj, i);
-            if (elem == Scriptable.NOT_FOUND) {
+            if (elem == Scriptable.NOT_FOUND && !(id == Id_find || id == Id_findIndex)) {
                 continue;
             }
             innerArgs[0] = elem;
@@ -1661,9 +1669,9 @@ public class NativeArray extends IdScriptableObject implements List
                 break;
               case Id_find:
                 if (ScriptRuntime.toBoolean(result))
-                  return elem;
+                    return elem;
                 break;
-            case Id_findIndex:
+              case Id_findIndex:
                 if (ScriptRuntime.toBoolean(result))
                     return ScriptRuntime.wrapNumber(i);
                 break;
