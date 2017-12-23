@@ -41,17 +41,17 @@ public class Test262SuiteTest {
     static ShellContextFactory CTX_FACTORY = new ShellContextFactory();
 
     @BeforeClass
-    public static void setUpClass() throws Exception {
-        HARNESS_SCRIPT_CACHE.put(-1, new HashMap<String, Script>());
-        HARNESS_SCRIPT_CACHE.put(0, new HashMap<String, Script>());
-        HARNESS_SCRIPT_CACHE.put(9, new HashMap<String, Script>());
+    public static void setUpClass() {
+        for (int optLevel : OPT_LEVELS) {
+            HARNESS_SCRIPT_CACHE.put(optLevel, new HashMap<String, Script>());
+        }
 
         CTX_FACTORY.setLanguageVersion(Context.VERSION_ES6);
         TestUtils.setGlobalContextFactory(CTX_FACTORY);
     }
 
     @AfterClass
-    public static void tearDownClass() throws Exception {
+    public static void tearDownClass() {
         TestUtils.setGlobalContextFactory(null);
     }
 
