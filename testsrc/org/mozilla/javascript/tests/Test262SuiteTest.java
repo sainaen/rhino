@@ -73,7 +73,8 @@ public class Test262SuiteTest {
         this.errorType = errorType;
     }
 
-    private Object executeRhinoScript() {
+    @Test
+    public void executeTest262Case() {
         Context cx = Context.enter();
 
         try {
@@ -95,14 +96,11 @@ public class Test262SuiteTest {
                 str = "\"use strict\";\nvar strict_mode = true;\n" + jsFileStr;
             }
 
-            Object result = cx.evaluateString(scope, str, jsFilePath.replaceAll("\\\\", "/"), 1, null);
+            cx.evaluateString(scope, str, jsFilePath.replaceAll("\\\\", "/"), 1, null);
 
             if (errorType != null) {
                 fail(String.format("failed negative test. expected error: %s", errorType));
-                return null;
             }
-
-            return result;
         } catch (RhinoException ex) {
             if (errorType == null) {
                 fail(String.format("%s%n%s", ex.getMessage(), ex.getScriptStackTrace()));
@@ -118,7 +116,6 @@ public class Test262SuiteTest {
                 }
                 assertEquals(ex.details(), errorType, exceptionName);
             }
-            return null;
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -128,7 +125,7 @@ public class Test262SuiteTest {
 
     private static final Yaml YAML = new Yaml();
 
-    public static List<File> getTestFiles() throws IOException {
+    private static List<File> getTestFiles() throws IOException {
         File testDir = new File("test262/test");
 
         List<File> testFiles = new LinkedList<File>();
@@ -259,10 +256,5 @@ public class Test262SuiteTest {
             }
         }
         return result;
-    }
-
-    @Test
-    public void test262() throws Exception {
-        executeRhinoScript();
     }
 }
