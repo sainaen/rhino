@@ -40,6 +40,40 @@ public class Test262SuiteTest {
 
     static ShellContextFactory CTX_FACTORY = new ShellContextFactory();
 
+    static final Set<String> UNSUPPORTED_FEATURES = new HashSet<>(Arrays.asList(
+            "Atomics",
+            "BigInt",
+            "IsHTMLDDA",
+            "Map",
+            "Promise.prototype.finally",
+            "Proxy",
+            "Reflect",
+            "Reflect.construct",
+            "Reflect.set",
+            "Reflect.setPrototypeOf",
+            "Set",
+            "SharedArrayBuffer",
+            "WeakMap",
+            "WeakSet",
+            "async-functions",
+            "async-iteration",
+            "class",
+            "class-fields-private",
+            "class-fields-public",
+            "computed-property-names",
+            "cross-realm",
+            "default-arg",
+            "default-parameters",
+            "generators",
+            "new.target",
+            "regexp-dotall",
+            "regexp-lookbehind",
+            "regexp-named-groups",
+            "super",
+            "tail-call-optimization",
+            "u180e"
+    ));
+
     @BeforeClass
     public static void setUpClass() {
         for (int optLevel : OPT_LEVELS) {
@@ -157,6 +191,7 @@ public class Test262SuiteTest {
             if (target.isFile()) {
                 testFiles.add(target);
             } else if (target.isDirectory()) {
+                String curDirectory = line;
                 recursiveListFilesHelper(target, JS_FILE_FILTER, dirFiles);
 
                 // start handling exclusions that could follow
@@ -187,7 +222,7 @@ public class Test262SuiteTest {
                     }
                     if (excludeCount == 0) {
                         System.err.format(
-                                "WARN: Exclusion '%s' at line #%d doesn't exclude anything",
+                                "WARN: Exclusion '%s' at line #%d doesn't exclude anything%n",
                                 excludeSubstr, lineNo);
                     }
                     // exclusion handled
@@ -197,9 +232,9 @@ public class Test262SuiteTest {
                 testFiles.addAll(dirFiles);
                 dirFiles.clear();
 
-                if (line != null) {
-                    // not an exclusion, so it wasn't handled,
-                    // let the main loop deal with it
+                if (line != null && !line.equals(curDirectory)) {
+                    // saw a different line and it isn't an exclusion,
+                    // so it wasn't handled, let the main loop deal with it
                     continue;
                 }
             }
@@ -216,22 +251,36 @@ public class Test262SuiteTest {
     @Parameters(name = "js={0}, opt={1}, strict={2}")
     public static Collection<Object[]> test262SuiteValues() throws IOException {
         List<Object[]> result = new ArrayList<>();
+
+        fileLoop:
         for (File testFile : getTestFiles()) {
 
-            Test262Case testCfg;
+            Test262Case testCase;
             try {
-                testCfg = Test262Case.fromSource(testFile.getPath());
+                testCase = Test262Case.fromSource(testFile.getPath());
             } catch (YAMLException ex) {
                 throw new RuntimeException("Error while parsing metadata of " + testFile.getPath(), ex);
             }
 
+            // all the reasons to not execute this file
+            // even if it's not excluded in the config
+            for (String feature : testCase.features) {
+                if (UNSUPPORTED_FEATURES.contains(feature)) {
+                    continue fileLoop;
+                }
+            }
+            if (testCase.hasFlag("module") ||
+                testCase.hasFlag("async")) {
+                continue;
+            }
+
             String caseShortPath = testDir.toPath().relativize(testFile.toPath()).toString();
             for (int optLevel : OPT_LEVELS) {
-                if (!testCfg.hasFlag("onlyStrict")) {
-                    result.add(new Object[]{caseShortPath, optLevel, false, testCfg});
+                if (!testCase.hasFlag("onlyStrict") || testCase.hasFlag("raw")) {
+                    result.add(new Object[]{caseShortPath, optLevel, false, testCase});
                 }
-                if (!testCfg.hasFlag("noStrict")) {
-                    result.add(new Object[]{caseShortPath, optLevel, true, testCfg});
+                if (!testCase.hasFlag("noStrict") && !testCase.hasFlag("raw")) {
+                    result.add(new Object[]{caseShortPath, optLevel, true, testCase});
                 }
             }
         }
@@ -248,19 +297,22 @@ public class Test262SuiteTest {
 
         final Set<String> flags;
         final Set<String> harnessFiles;
+        final Set<String> features;
 
         Test262Case(
                 String source,
                 Set<String> harnessFiles,
                 String expectedError,
                 boolean hasEarlyError,
-                Set<String> flags) {
+                Set<String> flags,
+                Set<String> features) {
 
             this.source = source;
             this.harnessFiles = harnessFiles;
             this.expectedError = expectedError;
             this.hasEarlyError = hasEarlyError;
             this.flags = flags;
+            this.features = features;
         }
 
         boolean hasFlag(String flag) {
@@ -276,9 +328,6 @@ public class Test262SuiteTest {
             String testSource = (String) SourceReader.readFileOrUrl(testFilePath, true, "UTF-8");
 
             Set<String> harnessFiles = new HashSet<>();
-            // default, always present harness files
-            harnessFiles.add("assert.js");
-            harnessFiles.add("sta.js");
 
             String metadataStr = testSource.substring(
                     testSource.indexOf("/*---") + 5,
@@ -302,7 +351,22 @@ public class Test262SuiteTest {
                 flags.addAll((Collection<String>) metadata.get("flags"));
             }
 
-            return new Test262Case(testSource, harnessFiles, expectedError, isEarly, flags);
+            Set<String> features = new HashSet<>();
+            if (metadata.containsKey("features")) {
+                features.addAll((Collection<String>) metadata.get("features"));
+            }
+
+            if (!flags.contains("raw")) {
+                // present by default harness files
+                harnessFiles.add("assert.js");
+                harnessFiles.add("sta.js");
+            } else if (!harnessFiles.isEmpty()) {
+                System.err.format(
+                        "WARN: case '%s' is flagged as 'raw' but also has defined includes%n",
+                        testFilePath);
+            }
+
+            return new Test262Case(testSource, harnessFiles, expectedError, isEarly, flags, features);
         }
     }
 }
