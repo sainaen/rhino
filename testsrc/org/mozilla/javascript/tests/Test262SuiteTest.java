@@ -62,9 +62,9 @@ public class Test262SuiteTest {
     private final int optLevel;
     private final boolean useStrict;
     private List<String> harnessFiles;
-    private EcmaErrorType errorType;
+    private String errorType;
 
-    public Test262SuiteTest(String jsFilePath, String jsFileStr, List<String> harnessFiles, int optLevel, boolean useStrict, EcmaErrorType errorType) {
+    public Test262SuiteTest(String jsFilePath, String jsFileStr, List<String> harnessFiles, int optLevel, boolean useStrict, String errorType) {
         this.jsFilePath = jsFilePath;
         this.jsFileStr = jsFileStr;
         this.optLevel = optLevel;
@@ -97,30 +97,26 @@ public class Test262SuiteTest {
 
             Object result = cx.evaluateString(scope, str, jsFilePath.replaceAll("\\\\", "/"), 1, null);
 
-            if (errorType != EcmaErrorType.NONE) {
+            if (errorType != null) {
                 fail(String.format("failed negative test. expected error: %s", errorType));
                 return null;
             }
 
             return result;
         } catch (RhinoException ex) {
-            if (errorType == EcmaErrorType.NONE) {
+            if (errorType == null) {
                 fail(String.format("%s%n%s", ex.getMessage(), ex.getScriptStackTrace()));
             } else {
-                if (errorType == EcmaErrorType.ANY) {
-                    // passed
+                String exceptionName;
+                if (ex instanceof EvaluatorException) {
+                    exceptionName = "SyntaxError";
                 } else {
-                    String exceptionName;
-                    if (ex instanceof EvaluatorException) {
-                        exceptionName = "SyntaxError";
-                    } else {
-                        exceptionName = ex.details();
-                        if (exceptionName.contains(":")) {
-                            exceptionName = exceptionName.substring(0, exceptionName.indexOf(":"));
-                        }
+                    exceptionName = ex.details();
+                    if (exceptionName.contains(":")) {
+                        exceptionName = exceptionName.substring(0, exceptionName.indexOf(":"));
                     }
-                    assertEquals(ex.details(), errorType.name(), exceptionName);
                 }
+                assertEquals(ex.details(), errorType, exceptionName);
             }
             return null;
         } catch (Exception e) {
@@ -251,7 +247,7 @@ public class Test262SuiteTest {
                 throw te;
             }
 
-            EcmaErrorType errorType = EcmaErrorType._valueOf((String)header.get("negative"));
+            String errorType = (String)header.get("negative");
             List<String> flags = header.containsKey("flags") ? (List<String>) header.get("flags") : Collections.EMPTY_LIST;
             for (int optLevel : OPT_LEVELS) {
                 if (!flags.contains("onlyStrict")) {
@@ -268,35 +264,5 @@ public class Test262SuiteTest {
     @Test
     public void test262() throws Exception {
         executeRhinoScript();
-    }
-
-    static enum EcmaErrorType {
-        NONE,
-        ANY,
-        NotEarlyError,
-        ReferenceError,
-        SyntaxError,
-        Test262Error,
-        TypeError,
-        expected_message;
-
-        static EcmaErrorType _valueOf(String s) {
-            if (s == null || s.equals("")) {
-                return NONE;
-            } else if (s.equals("NotEarlyError")) {
-                return NotEarlyError;
-            } else if (s.equals("ReferenceError")) {
-                return ReferenceError;
-            } else if (s.equals("SyntaxError")) {
-                return SyntaxError;
-            } else if (s.equals("Test262Error")) {
-                return Test262Error;
-            } else if (s.equals("TypeError")) {
-                return TypeError;
-            } else if (s.equals("expected_message")) {
-                return expected_message;
-            }
-            return ANY;
-        }
     }
 }
