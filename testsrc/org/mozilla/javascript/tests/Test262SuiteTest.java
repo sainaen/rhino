@@ -103,52 +103,81 @@ public class Test262SuiteTest {
         this.testCase = testCase;
     }
 
+    private Scriptable buildScope(Context cx) throws IOException {
+        Scriptable scope = cx.initSafeStandardObjects();
+        for (String harnessFile : testCase.harnessFiles) {
+            if (!HARNESS_SCRIPT_CACHE.get(optLevel).containsKey(harnessFile)) {
+                String harnessPath = "test262/harness/" + harnessFile;
+                HARNESS_SCRIPT_CACHE.get(optLevel).put(
+                        harnessFile,
+                        cx.compileReader(new FileReader(harnessPath), harnessPath, 1, null)
+                );
+            }
+            HARNESS_SCRIPT_CACHE.get(optLevel).get(harnessFile).exec(cx, scope);
+        }
+        return scope;
+    }
+
+    private static String extractJSErrorName(RhinoException ex) {
+        if (ex instanceof EvaluatorException) {
+            // there's no universal format to EvaluatorException's
+            // for now, just assume that it's a SyntaxError
+            return "SyntaxError";
+        }
+
+        String exceptionName = ex.details();
+        if (exceptionName.contains(":")) {
+            exceptionName = exceptionName.substring(0, exceptionName.indexOf(":"));
+        }
+        return exceptionName;
+    }
+
     @Test
     public void test262Case() {
         Context cx = Context.enter();
+        cx.setOptimizationLevel(optLevel);
 
+        Scriptable scope;
         try {
-            cx.setOptimizationLevel(optLevel);
+            scope = buildScope(cx);
+        } catch (Exception ex) {
+            Context.exit();
+            throw new RuntimeException("Failed to build a scope with the harness files.", ex);
+        }
 
-            Scriptable scope = cx.initStandardObjects();
-            for (String harnessFile : testCase.harnessFiles) {
-                if (!HARNESS_SCRIPT_CACHE.get(optLevel).containsKey(harnessFile)) {
-                    HARNESS_SCRIPT_CACHE.get(optLevel).put(
-                            harnessFile,
-                            cx.compileReader(new FileReader("test262/harness/" + harnessFile), "test262/harness/" + harnessFile, 1, null)
-                    );
-                }
-                HARNESS_SCRIPT_CACHE.get(optLevel).get(harnessFile).exec(cx, scope);
-            }
+        String str = testCase.source;
+        if (useStrict) {
+            str = "\"use strict\";\n" + str;
+        }
 
-            String str = testCase.source;
-            if (useStrict) { // taken from test262.py
-                str = "\"use strict\";\nvar strict_mode = true;\n" + str;
-            }
+        boolean failedEarly = true;
+        try {
+            Script caseScript = cx.compileString(str, testFilePath, 0, null);
 
-            cx.evaluateString(scope, str, testFilePath.replaceAll("\\\\", "/"), 1, null);
+            failedEarly = false; // not after this line
+            caseScript.exec(cx, scope);
 
             if (testCase.isNegative()) {
-                fail(String.format("Failed a negative test. Expected error: %s", testCase.expectedError));
+                fail(String.format(
+                        "Failed a negative test. Expected error: %s (at phase '%s')",
+                        testCase.expectedError,
+                        testCase.hasEarlyError ? "early" : "runtime"));
             }
-
         } catch (RhinoException ex) {
             if (!testCase.isNegative()) {
                 fail(String.format("%s%n%s", ex.getMessage(), ex.getScriptStackTrace()));
             }
 
-            String exceptionName;
-            if (ex instanceof EvaluatorException) {
-                exceptionName = "SyntaxError";
-            } else {
-                exceptionName = ex.details();
-                if (exceptionName.contains(":")) {
-                    exceptionName = exceptionName.substring(0, exceptionName.indexOf(":"));
-                }
+            String errorName = extractJSErrorName(ex);
+
+            if (testCase.hasEarlyError && !failedEarly) {
+                fail(String.format(
+                        "Expected an early error: %s, got: %s in the runtime",
+                        testCase.expectedError,
+                        errorName));
             }
-            assertEquals(ex.details(), testCase.expectedError, exceptionName);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+            assertEquals(ex.details(), testCase.expectedError, errorName);
         } finally {
             Context.exit();
         }
