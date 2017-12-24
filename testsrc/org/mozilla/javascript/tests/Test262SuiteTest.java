@@ -66,6 +66,7 @@ public class Test262SuiteTest {
             "default-parameters",
             "generators",
             "new.target",
+            "object-rest",
             "regexp-dotall",
             "regexp-lookbehind",
             "regexp-named-groups",
@@ -291,13 +292,15 @@ public class Test262SuiteTest {
                 throw new RuntimeException("Error while parsing metadata of " + testFile.getPath(), ex);
             }
 
-            // all the reasons to not execute this file
-            // even if it's not excluded in the config
+            // all the reasons not to execute this file
+            // even if it's not excluded in the config:
+            // 1. it requires/tests unsupported features
             for (String feature : testCase.features) {
                 if (UNSUPPORTED_FEATURES.contains(feature)) {
                     continue fileLoop;
                 }
             }
+            // 2. it runs in an unsupported environment
             if (testCase.hasFlag("module") ||
                 testCase.hasFlag("async")) {
                 continue;
